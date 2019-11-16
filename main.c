@@ -17,17 +17,17 @@ struct cliente
 
 int login(struct cliente *cl, int n);
 int find_acc(int no_cuenta, struct cliente *cl, int n);
+int update(FILE *fp, struct cliente clientes[], int n);
 
 int main()
 {
-
     int i, n;
     int op = 5, on;
     int cliente_actual;
     //Abir archivo y llenar arreglo de estructuras
     struct cliente clientes[10];
     FILE *fp;
-    fp = fopen("db.txt", "r");
+    fp = fopen("db.txt", "r+");
     if (fp == NULL)
     {
         printf("Error al abrir el archivo");
@@ -39,16 +39,12 @@ int main()
         fscanf(fp, "%d %d %s %s %d %f %d\n", &clientes[i].no_list, &clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, &clientes[i].pswd, &clientes[i].balance, &clientes[i].no_transfer);
     }
 
-    // // Imprimir informacion de los clientes
-    // for(i=0;i<n;i++){
-    //     printf("%s %s\nCliente: %d Contrasena: %d\nBalance: %.2f No_transfer: %d No_list: %d\n\n", clientes[i].nombre, clientes[i].apellido, clientes[i].no_cliente, clientes[i].pswd, clientes[i].balance, clientes[i].no_transfer, clientes[i].no_list);
-    // }
-
     do
     {
         do
         {
             cliente_actual = login(clientes, n);
+            update(fp, clientes, n);
         } while (cliente_actual == -1);
         do
         {
@@ -119,4 +115,16 @@ int find_acc(int no_cuenta, struct cliente clientes[], int n)
         }
     }
     return -1;
+}
+
+int update(FILE *fp, struct cliente clientes[], int n)
+{
+    int i;
+    rewind(fp);
+    fprintf(fp, "%d\n", n);
+    for (i = 0; i < n; i++)
+    {
+        fprintf(fp, "%d %d %s %s %d %f %d\n", clientes[i].no_list, clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, clientes[i].pswd, clientes[i].balance, clientes[i].no_transfer);
+    }
+    return 0;
 }
