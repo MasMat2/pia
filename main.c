@@ -180,8 +180,27 @@ int informacion(struct cliente *cliente){
     wait_for_input();
     return 1;
 }
-int retiros(struct cliente *clientes){
-    printf("Ingreasa la cantidad que desea retirar: ");
+int retiros(struct cliente *cliente){
+	float retiro;
+	int op, aux=0;
+	system(clear);
+	do
+	{
+        printf("Balance actual: %.2f\nIngreasa la cantidad que desea retirar: ", cliente->balance);
+		fflush(stdin);
+    	scanf("%f", &retiro);
+		while (retiro>cliente->balance){
+    	    printf("\nLa cantidad a retirar es mayor a su balance, ingrese otra cantidad: ");
+            fflush(stdin);
+            scanf("%f", &retiro);
+        }
+    	printf("\nEs correcta la cantidad?[0]-Si[1]-No\nOpcion: ");
+    	fflush(stdin);
+    	scanf("%d", &op);
+	}while (op);
+	//Actualizamos el balance del usuario actual 
+	cliente->balance-=retiro;
+    printf("Su balance actual es %.2f", cliente->balance);
     wait_for_input();
     return 1;
 }
@@ -195,7 +214,7 @@ float depositos(struct cliente *cliente){
     wait_for_input();
     return deposito;
 }
-// int transferencias(struct cliente *cliente, int n, int actual);
+
 
 void wait_for_input(void){
     char c;
