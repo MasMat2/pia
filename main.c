@@ -18,7 +18,7 @@ struct cliente
 };
 
 int login(struct cliente *cl, int n);
-int crear_cuenta(struct cliente clientes[], int n);
+int crear_cuenta(FILE *fp, struct cliente clientes[], int n);
 int find_acc(int no_cuenta, struct cliente *cl, int n);
 int update(FILE *fp, struct cliente clientes[], int n);
 int menu(struct cliente *cliente);
@@ -45,7 +45,6 @@ int main()
     int op = 5, on;
     int actual;
     //Abir archivo y llenar arreglo de estructuras
-    struct cliente clientes[10];
     FILE *fp;
     fp = fopen("db.txt", "r+");
     if (fp == NULL)
@@ -53,27 +52,34 @@ int main()
         printf("Error al abrir el archivo");
         exit(-1);
     }
-    fscanf(fp, "%d", &n);
-    for (i = 0; i < n; i++)
-    {
-        fscanf(fp, "%d %d %s %s %d %f %d\n", &clientes[i].no_list, &clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, &clientes[i].pswd, &clientes[i].balance, &clientes[i].no_transfer);
-    }
     //Llenado de la estructura finalizado
 
     do
     {
-        op = crear_logearse();
-        if (op == 1)
+        do
         {
-            do
+            rewind(fp);
+            fscanf(fp, "%d", &n);
+            struct cliente clientes[n];
+            for (i = 0; i < n; i++)
             {
-                actual = login(clientes, n);
-            } while (actual == -1);
-        }
-        else
-        {
-            crear_cuenta(clientes, int n);
-        }
+                fscanf(fp, "%d %d %s %s %d %f %d\n", &clientes[i].no_list, &clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, &clientes[i].pswd, &clientes[i].balance, &clientes[i].no_transfer);
+            }
+            op = crear_logearse();
+            switch (op)
+            {
+            case 1:
+                do
+                {
+                    actual = login(clientes, n);
+                } while (actual == -1);
+                break;
+            case 2:
+                crear_cuenta(fp, clientes, n);
+                actual = n;
+                break;
+            }
+        } while (op == 2);
         do
         {
             system(clear);
@@ -157,8 +163,47 @@ int login(struct cliente clientes[], int n)
     return index;
 }
 
-int crear_cuenta(struct cliente clientes[], int n)
+int crear_no_cuenta(struct cliente clientes[], int n)
 {
+    int i, no_cliente;
+    int flag = 1;
+
+    while (flag)
+    {
+        flag = 0;
+        no_cliente = 1000 + (rand() % 1000);
+        for (i = 0; i < n; i++)
+        {
+            if (clientes[i].no_cliente == no_cliente)
+            {
+                flag = 1;
+            }
+        }
+    }
+    return no_cliente;
+}
+int crear_no_transferencia(struct cliente clientes[], int n)
+{
+    int i, no_transfer;
+    int flag = 1;
+
+    while (flag)
+    {
+        flag = 0;
+        no_transfer = 1000 + (rand() % 1000);
+        for (i = 0; i < n; i++)
+        {
+            if (clientes[i].no_transfer == no_transfer)
+            {
+                flag = 1;
+            }
+        }
+    }
+    return no_transfer;
+}
+int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
+{
+    int i;
     struct cliente nuevo;
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
@@ -168,14 +213,23 @@ int crear_cuenta(struct cliente clientes[], int n)
     printf("\nIngrese su apellido: ");
     fflush(stdin);
     fgets(nuevo.apellido, 20, stdin);
-    nuevo.no_cliente = 1000 + (rand() % 1000);
+    nuevo.no_cliente = crear_no_cuenta(clientes, n);
     printf("Ingrese su nueva contrasena: ");
     nuevo.pswd = integer_validation("", "");
+    nuevo.balance = 0;
+    nuevo.no_transfer = crear_no_transferencia(clientes, n);
+    nuevo.no_list = n + 1;
 
-    n++;
+    //LLenar base de datos
+    // for (i = 0; i < n; i++)
+    // {
+    //     fprintf(fp, "%d %d %s %s %d %f %d\n", clientes[i].no_list, clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, clientes[i].pswd, clientes[i].balance, clientes[i].no_transfer);
+    // }
+    fprintf(fp, "%d %d %s %s %d %f %d\n", nuevo.no_list, nuevo.no_cliente, nuevo.nombre, nuevo.apellido, nuevo.pswd, nuevo.balance, nuevo.no_transfer);
+    rewind(fp);
+    fprintf(fp, "%d\n", n + 1);
     return n;
 }
-
 int find_acc(int no_cuenta, struct cliente clientes[], int n)
 {
     int index;
