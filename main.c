@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <windows.h>
 
 #define clear "clear"
 
@@ -23,11 +25,14 @@ int informacion(struct cliente *cliente);
 int retiros(struct cliente *clientes);
 float depositos(struct cliente *cliente);
 int transferencias(struct cliente *cliente, int n, int actual);
+void imprimir_movimientos(struct cliente *cliente);
 
 int integer_validation(char msg[], char alt_msg[]);
 float float_validation(char msg[], char alt_msg[]);
 int is_int(char *arr);
 int is_float(char *arr);
+
+void historial(struct cliente *cliente, float mov, int opc);
 
 void wait_for_input(void);
 
@@ -74,10 +79,13 @@ int main()
                 depositos(&clientes[actual]);
                 break;
             case 4:
-                transferencias(clientes, n, actual);
+                transferencias(&clientes[actual], n, actual);
+                break;
+            case 5:
+                // imprimir_movimientos(&cliente[actual]);
                 break;
             }
-        } while (op != 5);
+        } while (op != 6);
         update(fp, clientes, n);
         on = integer_validation("Desea apagar el cajero automatico (0-Si/1-No): ", "");
     } while (on);
@@ -153,6 +161,40 @@ int update(FILE *fp, struct cliente clientes[], int n)
     return 0;
 }
 
+void historial(struct cliente *cliente, float mov, int opc)
+{
+    char nume[' '];
+    float sum;
+    sprintf(nume, "%d", cliente->no_cliente);
+    strcat(nume, ".txt");
+    FILE *archivo = fopen(nume, "a");
+    fprintf(archivo, "Balance Inicial: %f", cliente->balance);
+    switch (opc)
+    {
+    case 2:
+        sum = cliente->balance - mov;
+        fprintf(archivo, "\tRetiro: %f", mov);
+        break;
+    case 3:
+        sum = cliente->balance + mov;
+        fprintf(archivo, "\tDeposito: %f", mov);
+        break;
+    case 4:
+        sum = cliente->balance - mov;
+        fprintf(archivo, "\tTransferencia: %f", mov);
+        break;
+    case 5:
+        sum = cliente->balance + mov;
+        fprintf(archivo, "\tTransferencia: %f", mov);
+        break;
+    }
+    fprintf(archivo, "\tBalance actual: %f", sum);
+    SYSTEMTIME t;
+    GetLocalTime(&t);
+    fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
+    fclose(archivo);
+}
+
 int menu(struct cliente *cliente)
 {
     int op;
@@ -165,9 +207,10 @@ int menu(struct cliente *cliente)
         printf("\n2- Realizar un retiro");
         printf("\n3- Realizar un deposito");
         printf("\n4- Realizar una transferenecia");
-        printf("\n5- Salir");
+        printf("\n5- Imprimir movimientos recientes");
+        printf("\n6-Salir");
         op = integer_validation("\nOpcion: ", "");
-    } while (op < 1 || op > 5);
+    } while (op < 1 || op > 6);
     return op;
 }
 
@@ -207,6 +250,7 @@ int retiros(struct cliente *cliente)
     //Actualizamos el balance del usuario actual
     cliente->balance = cliente->balance - retiro;
     printf("Su balance actual es %.2f", cliente->balance);
+    historial(cliente, retiro, 2);
     wait_for_input();
     return 1;
 }
@@ -217,6 +261,7 @@ float depositos(struct cliente *cliente)
     deposito = float_validation("Ingrese la cantidad que quiere depositar: ", "");
     cliente->balance += deposito;
     printf("Se depositaron %.2f pesos en su cuenta\nSu balance actual es %.2f", deposito, cliente->balance);
+    historial(cliente, deposito, 3);
     wait_for_input();
     return deposito;
 }
@@ -278,6 +323,7 @@ int transferencias(struct cliente *cliente, int n, int actual)
     //Restamos la cantidad transferida por el usuario de su balance
     cliente->balance = cliente->balance - transfer;
     printf("\nSe transferieron %.2f pesos\nSu balance actual es %.2f", transfer, cliente->balance);
+    historial(cliente, transfer, 4);
     //Reiniciamos el puntero
     cliente = cliente - actual;
     for (i = 0; i < n; i++)
@@ -286,6 +332,7 @@ int transferencias(struct cliente *cliente, int n, int actual)
         if (no_trans == cliente->no_transfer)
         {
             cliente->balance = cliente->balance + transfer;
+            historial(cliente, transfer, 4);
         }
         //Aumentamos la direccion el puntero
         cliente++;
