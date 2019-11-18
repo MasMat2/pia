@@ -74,7 +74,7 @@ int main()
                 depositos(&clientes[actual]);
                 break;
             case 4:
-                // transferencias(clientes, n, actual);
+                transferencias(clientes, n, actual);
                 break;
             }
         } while (op != 5);
@@ -156,7 +156,8 @@ int update(FILE *fp, struct cliente clientes[], int n)
 int menu(struct cliente *cliente)
 {
     int op;
-    do{
+    do
+    {
         system(clear);
         printf("\nBienvenido %s %s\n", cliente->nombre, cliente->apellido);
         printf("\nEliga la opcion que desee: ");
@@ -166,11 +167,12 @@ int menu(struct cliente *cliente)
         printf("\n4- Realizar una transferenecia");
         printf("\n5- Salir");
         op = integer_validation("\nOpcion: ", "");
-    }while(op<1 || op>5);
+    } while (op < 1 || op > 5);
     return op;
 }
 
-int informacion(struct cliente *cliente){
+int informacion(struct cliente *cliente)
+{
     system(clear);
     printf("Informacion de la cuenta:");
     printf("\n%-24s %s %s", "Nombre:", cliente->nombre, cliente->apellido);
@@ -180,34 +182,36 @@ int informacion(struct cliente *cliente){
     wait_for_input();
     return 1;
 }
-int retiros(struct cliente *cliente){
-	float retiro;
-	int op, aux;
-	system(clear);
-	do
-	{
-		do
-		{
-			aux=0;
-			printf("Balance actual: %.2f\n", cliente->balance);
+int retiros(struct cliente *cliente)
+{
+    float retiro;
+    int op, aux;
+    system(clear);
+    do
+    {
+        do
+        {
+            aux = 0;
+            printf("Balance actual: %.2f\n", cliente->balance);
             retiro = float_validation("Ingreasa la cantidad que desea retirar: ", "");
-    		//Validamos que la cantidad ingresada no sea mayor a el balance del usuario
-    		if(retiro>cliente->balance)
-    		{
-    			system(clear);
-    			printf("La cantidad a retirar es mayor a su balance, ingrese otra cantidad:\n\n");
-    			aux=1;
-			}
-		}while (aux==1);
+            //Validamos que la cantidad ingresada no sea mayor a el balance del usuario
+            if (retiro > cliente->balance)
+            {
+                system(clear);
+                printf("La cantidad a retirar es mayor a su balance, ingrese otra cantidad:\n\n");
+                aux = 1;
+            }
+        } while (aux == 1);
         op = integer_validation("Es correcta la cantidad?\n[1]-Si\n[2]-No\nOpcion: ", "");
-	}while (op==2);
-	//Actualizamos el balance del usuario actual 
-	cliente->balance=cliente->balance-retiro;
+    } while (op == 2);
+    //Actualizamos el balance del usuario actual
+    cliente->balance = cliente->balance - retiro;
     printf("Su balance actual es %.2f", cliente->balance);
     wait_for_input();
     return 1;
 }
-float depositos(struct cliente *cliente){
+float depositos(struct cliente *cliente)
+{
     float deposito;
     system(clear);
     deposito = float_validation("Ingrese la cantidad que quiere depositar: ", "");
@@ -217,13 +221,87 @@ float depositos(struct cliente *cliente){
     return deposito;
 }
 
+int transferencias(struct cliente *cliente, int n, int actual)
+{
+    float transfer;
+    int no_trans, i, aux, op = 0;
+    struct cliente *ap;
+    // system(clear);
+    //Validamos que la cantidad ingresada no sea mayor a el balance del usuario
+    do
+    {
+        aux = 0;
+        printf("Balance actual: %.2f\n\nIngreasa la cantidad que desea transferir: ", cliente->balance);
+        transfer = float_validation("", "");
+        if (transfer > cliente->balance)
+        {
+            system(clear);
+            printf("\nLa cantidad a transferir esta por encima de su balance, intente otra vez: \n");
+            aux = 1;
+        }
+    } while (aux == 1);
+    do
+    {
+        //Validamos que el numero de transferencia exista antes de realizar una operacion
+        do
+        {
+            printf("\nIngrese el numero de transferencia del destinatario: ");
+            no_trans = integer_validation("", "");
+            //Usamos otro puntero para no afectar el puntero principal
+            ap = cliente;
+            //Reiniciamos el puntero
+            ap = ap - actual;
+            aux = 1;
+            for (i = 0; i < n; i++)
+            {
+                //Checars todos los numeros de transferencias hasta encontrar el ingresado por el usuario
+                if (no_trans == ap->no_transfer)
+                {
+                    printf("\nNumero de transferencia encontrado satisfactoriamente");
+                    aux = 0;
+                }
+                ap++;
+            }
+            if (aux == 1)
+            {
+                //Avisamos al usuario que no se encontro el numero ingresado y se pide volder a ingresar un valor
+                system(clear);
+                printf("Balance actual: %.2f\n\nNumero de transferencia no existe, intente nuevamente", cliente->balance);
+                wait_for_input();
+            }
+        } while (aux == 1);
+        printf("\nEs correcto el numero de transferencia?\n[1]-Si\n[2]-No\nOpcion: ");
+        op = integer_validation("", "");
+        if (op == 2)
+            system(clear);
+    } while (op == 2);
+    //Restamos la cantidad transferida por el usuario de su balance
+    cliente->balance = cliente->balance - transfer;
+    printf("\nSe transferieron %.2f pesos\nSu balance actual es %.2f", transfer, cliente->balance);
+    //Reiniciamos el puntero
+    cliente = cliente - actual;
+    for (i = 0; i < n; i++)
+    {
+        //Buscamos el numero de transferencia de todos los usuarios hasta que coincida con el no. de transferencia ingresado
+        if (no_trans == cliente->no_transfer)
+        {
+            cliente->balance = cliente->balance + transfer;
+        }
+        //Aumentamos la direccion el puntero
+        cliente++;
+    }
+    wait_for_input();
+    return 1;
+}
 
-int integer_validation(char msg[], char alt_msg[]){
+int integer_validation(char msg[], char alt_msg[])
+{
     char numero[20];
     printf("%s", msg);
     fflush(stdin);
     fgets(numero, 20, stdin);
-    while(!is_int(numero)){
+    while (!is_int(numero))
+    {
         printf("Ingresar solamente un numero entero: ");
         fflush(stdin);
         fgets(numero, 20, stdin);
@@ -231,23 +309,27 @@ int integer_validation(char msg[], char alt_msg[]){
     return atoi(numero);
 }
 
-float float_validation(char msg[], char alt_msg[]){
+float float_validation(char msg[], char alt_msg[])
+{
     char numero[20];
     printf("%s", msg);
     fflush(stdin);
     fgets(numero, 20, stdin);
-    while(!is_float(numero)){
+    while (!is_float(numero))
+    {
         printf("Ingresar solamente un numero decimal: ");
         fflush(stdin);
         fgets(numero, 20, stdin);
     }
     return atof(numero);
-
 }
 
-int is_int(char *arr){
-    while(*arr!='\0' && *arr!='\n'){
-        if(*arr<48||*arr>57){
+int is_int(char *arr)
+{
+    while (*arr != '\0' && *arr != '\n')
+    {
+        if (*arr < 48 || *arr > 57)
+        {
             return 0;
         }
         arr++;
@@ -255,16 +337,23 @@ int is_int(char *arr){
     return 1;
 }
 
-int is_float(char *arr){
-    int periods=0;
-    while(*arr!='\0' && *arr!='\n'){
-        if(*arr<48||*arr>57){
-            if(*arr=='.'||*arr==','){
+int is_float(char *arr)
+{
+    int periods = 0;
+    while (*arr != '\0' && *arr != '\n')
+    {
+        if (*arr < 48 || *arr > 57)
+        {
+            if (*arr == '.' || *arr == ',')
+            {
                 periods++;
-                if(periods==2){
+                if (periods == 2)
+                {
                     return 0;
                 }
-            }else{
+            }
+            else
+            {
                 return 0;
             }
         }
@@ -272,7 +361,8 @@ int is_float(char *arr){
     }
     return 1;
 }
-void wait_for_input(void){
+void wait_for_input(void)
+{
     char c;
     printf("\n\nPresione enter para continuar: ");
     getchar();
