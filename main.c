@@ -182,24 +182,30 @@ int informacion(struct cliente *cliente){
 }
 int retiros(struct cliente *cliente){
 	float retiro;
-	int op, aux=0;
+	int op, aux;
 	system(clear);
 	do
 	{
-        printf("Balance actual: %.2f\nIngreasa la cantidad que desea retirar: ", cliente->balance);
-		fflush(stdin);
-    	scanf("%f", &retiro);
-		while (retiro>cliente->balance){
-    	    printf("\nLa cantidad a retirar es mayor a su balance, ingrese otra cantidad: ");
-            fflush(stdin);
-            scanf("%f", &retiro);
-        }
-    	printf("\nEs correcta la cantidad?[0]-Si[1]-No\nOpcion: ");
+		do
+		{
+			aux=0;
+			printf("Balance actual: %.2f\nIngreasa la cantidad que desea retirar: ", cliente->balance);
+			fflush(stdin);
+    		scanf("%f", &retiro);
+    		//Validamos que la cantidad ingresada no sea mayor a el balance del usuario
+    		if(retiro>cliente->balance)
+    		{
+    			system(clear);
+    			printf("La cantidad a retirar es mayor a su balance, ingrese otra cantidad:\n\n");
+    			aux=1;
+			}
+		}while (aux==1);
+    	printf("Es correcta la cantidad?\n[1]-Si\n[2]-No\nOpcion: ");
     	fflush(stdin);
     	scanf("%d", &op);
-	}while (op);
+	}while (op==2);
 	//Actualizamos el balance del usuario actual 
-	cliente->balance-=retiro;
+	cliente->balance=cliente->balance-retiro;
     printf("Su balance actual es %.2f", cliente->balance);
     wait_for_input();
     return 1;
@@ -215,7 +221,31 @@ float depositos(struct cliente *cliente){
     return deposito;
 }
 
+int integer_validation(char *arr){
+    while(*arr!='\0' && *arr!='\n'){
+        if(*arr<48||*arr>57){
+            return -1;
+        }
+    }
+    return atoi(arr);
+}
 
+float float_validation(char *arr){
+    int periods=0;
+    while(*arr!='\0' && *arr!='\n'){
+        if(*arr<48||*arr>57){
+            if(*arr=='.'||*arr==','){
+                periods++;
+                if(periods==2){
+                    return -1.0;
+                }
+            }else{
+                return -1.0;
+            }
+        }
+    }
+    return atof(arr);
+}
 void wait_for_input(void){
     char c;
     printf("\n\nPresione enter para continuar: ");
