@@ -14,7 +14,6 @@ struct cliente
     float balance;
     int no_transfer;
     int no_list;
-    char archivo[30];
 };
 
 int login(struct cliente *cl, int n);
@@ -43,7 +42,7 @@ int main()
 {
     struct cliente clientes[100];
     int i, n;
-    int op = 5, on;
+    int op = 5, on=2;
     int actual=0;
     //Abir archivo y llenar arreglo de estructuras
     FILE *fp;
@@ -160,7 +159,7 @@ int crear_logearse()
         printf("\n1- Logearse");
         printf("\n2- Crear cuenta");
         op = integer_validation("\nOpcion: ", "");
-    } while (op < 0 || op > 2);
+    } while (op < 1 || op > 2);
     return op;
 }
 int crear_no_cuenta(struct cliente clientes[], int n)
