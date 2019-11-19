@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <windows.h>
+#include <windows.h>
 
 #define clear "clear"
 
@@ -35,7 +35,7 @@ float float_validation(char msg[], char alt_msg[]);
 int is_int(char *arr);
 int is_float(char *arr);
 
-void historial(struct cliente *cliente, float mov, int opc);
+int historial(struct cliente *cliente, float mov, int opc);
 
 void wait_for_input(void);
 
@@ -44,7 +44,7 @@ int main()
     struct cliente clientes[100];
     int i, n;
     int op = 5, on;
-    int actual;
+    int actual=0;
     //Abir archivo y llenar arreglo de estructuras
     FILE *fp;
     fp = fopen("db.txt", "r+");
@@ -63,20 +63,19 @@ int main()
 
     do
     {
-        op = crear_logearse();
-        switch (op)
-        {
-        case 1:
-            do
+        do{
+            op = crear_logearse();
+            switch (op)
             {
+            case 1:
                 actual = login(clientes, n);
-            } while (actual == -1);
-            break;
-        case 2:
-            n = crear_cuenta(fp, clientes, n);
-            actual = n-1;
-            break;
-        }
+                break;
+            case 2:
+                n = crear_cuenta(fp, clientes, n);
+                actual = n-1;
+                break;
+            }
+        }while(actual==-1);
         do
         {
             system(clear);
@@ -104,6 +103,7 @@ int main()
         on = integer_validation("Desea apagar el cajero automatico (1-Si/2-No): ", "");
     } while (on==2);
 
+    fclose(fp);
     return 0;
 }
 
@@ -160,7 +160,7 @@ int crear_logearse()
         printf("\n1- Logearse");
         printf("\n2- Crear cuenta");
         op = integer_validation("\nOpcion: ", "");
-    } while (op < 0 || op > 3);
+    } while (op < 0 || op > 2);
     return op;
 }
 int crear_no_cuenta(struct cliente clientes[], int n)
@@ -228,6 +228,7 @@ int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
     clientes[n].no_transfer = crear_no_transferencia(clientes, n);
     clientes[n].no_list = n + 1;
     printf("\nSu numero de cuenta es %d es importante que lo recuerde para que pueda logearse.", clientes[n].no_cliente);
+    historial(&clientes[n], 0, 0);
     wait_for_input();
     return n+1;
 }
@@ -265,12 +266,15 @@ int update(FILE *fp, struct cliente clientes[], int n)
     return 0;
 }
 
-void historial(struct cliente *cliente, float mov, int opc)
+int historial(struct cliente *cliente, float mov, int opc)
 {
     char nume[' '];
     float sum;
     sprintf(nume, "movimientos/%d.txt", cliente->no_cliente);
     FILE *archivo = fopen(nume, "a");
+    if(mov==0){
+        return 0;
+    }
     fprintf(archivo, "Balance Inicial: %f", cliente->balance);
     switch (opc)
     {
@@ -292,10 +296,11 @@ void historial(struct cliente *cliente, float mov, int opc)
         break;
     }
     fprintf(archivo, "\tBalance actual: %f\n", sum);
-    // SYSTEMTIME t;
-    // GetLocalTime(&t);
-    // fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
+    SYSTEMTIME t;
+    GetLocalTime(&t);
+    fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
     fclose(archivo);
+    return 1;
 }
 
 
