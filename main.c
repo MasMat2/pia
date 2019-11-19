@@ -42,8 +42,8 @@ int main()
 {
     struct cliente clientes[100];
     int i, n;
-    int op = 5, on=2;
-    int actual=0;
+    int op = 5, on = 2;
+    int actual = 0;
     //Abir archivo y llenar arreglo de estructuras
     FILE *fp;
     fp = fopen("db.txt", "r+");
@@ -62,7 +62,8 @@ int main()
 
     do
     {
-        do{
+        do
+        {
             op = crear_logearse();
             switch (op)
             {
@@ -71,10 +72,10 @@ int main()
                 break;
             case 2:
                 n = crear_cuenta(fp, clientes, n);
-                actual = n-1;
+                actual = n - 1;
                 break;
             }
-        }while(actual==-1);
+        } while (actual == -1);
         do
         {
             system(clear);
@@ -100,12 +101,11 @@ int main()
         } while (op != 6);
         update(fp, clientes, n);
         on = integer_validation("Desea apagar el cajero automatico (1-Si/2-No): ", "");
-    } while (on==2);
+    } while (on == 2);
 
     fclose(fp);
     return 0;
 }
-
 
 int login(struct cliente clientes[], int n)
 {
@@ -118,7 +118,7 @@ int login(struct cliente clientes[], int n)
     do
     {
         no_cuenta = integer_validation("\nIngrese su numero de cuenta, (0 para salir): ", "");
-        if(no_cuenta==0)
+        if (no_cuenta == 0)
             return -1;
         //Verificar que pertenezca a un cliente
         index = find_acc(no_cuenta, clientes, n);
@@ -219,7 +219,8 @@ int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
     clientes[n].no_cliente = crear_no_cuenta(clientes, n);
     printf("Ingrese su nueva contrasena (numero de 4 digitos): ");
     clientes[n].pswd = integer_validation("", "");
-    while(clientes[n].pswd<100 ||clientes[n].pswd>9999){
+    while (clientes[n].pswd < 100 || clientes[n].pswd > 9999)
+    {
         printf("Por favor solo una contrasena de 4 digitos): ");
         clientes[n].pswd = integer_validation("", "");
     }
@@ -229,10 +230,8 @@ int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
     printf("\nSu numero de cuenta es %d es importante que lo recuerde para que pueda logearse.", clientes[n].no_cliente);
     historial(&clientes[n], 0, 0);
     wait_for_input();
-    return n+1;
+    return n + 1;
 }
-
-
 
 int find_acc(int no_cuenta, struct cliente clientes[], int n)
 {
@@ -254,7 +253,7 @@ int update(FILE *fp, struct cliente clientes[], int n)
     int i;
     //Regresar el apuntador al inicio del archivo
     // rewind(fp);
-    fseek(fp,0,0);
+    fseek(fp, 0, 0);
     //Escribir el numero de clientes que se guardaran
     fprintf(fp, "%d\n", n);
     //Escribir cada la estuctura de cada uno de los clientes
@@ -271,7 +270,8 @@ int historial(struct cliente *cliente, float mov, int opc)
     float sum;
     sprintf(nume, "movimientos/%d.txt", cliente->no_cliente);
     FILE *archivo = fopen(nume, "a");
-    if(mov==0){
+    if (mov == 0)
+    {
         return 0;
     }
     fprintf(archivo, "Balance Inicial: %f", cliente->balance);
@@ -294,16 +294,13 @@ int historial(struct cliente *cliente, float mov, int opc)
         fprintf(archivo, "\tTransferencia: %f", mov);
         break;
     }
-    fprintf(archivo, "\tBalance actual: %f\n", sum);
+    fprintf(archivo, "\tBalance actual: %f", sum);
     SYSTEMTIME t;
     GetLocalTime(&t);
     fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
     fclose(archivo);
     return 1;
 }
-
-
-
 
 int menu(struct cliente *cliente)
 {
@@ -340,18 +337,19 @@ int informacion(struct cliente *cliente)
 int retiros(struct cliente *cliente)
 {
     float retiro;
-    int op, aux=0;
+    int op, aux = 0;
     do
     {
         do
         {
             system(clear);
             printf("********Cajero Automatico ACME*******\n");
-            if(aux)
+            if (aux)
                 printf("\nLa cantidad a retirar es mayor a su balance, ingrese otra cantidad\n\n");
             printf("\nBalance actual: %.2f\n", cliente->balance);
             retiro = float_validation("\n\nIngreasa la cantidad que desea retirar (0 para salir): ", "");
-            if(retiro==0){
+            if (retiro == 0)
+            {
                 return 0;
             }
             //Validamos que la cantidad ingresada no sea mayor a el balance del usuario
@@ -362,7 +360,7 @@ int retiros(struct cliente *cliente)
         } while (aux);
         printf("\nEs correcta la cantidad de %.2f?\n1-Si\n2-No\nOpcion: ", retiro);
         op = integer_validation("", "");
-    } while (op==2);
+    } while (op == 2);
     //Actualizamos el balance del usuario actual
     historial(cliente, retiro, 2);
     cliente->balance = cliente->balance - retiro;
@@ -376,7 +374,8 @@ float depositos(struct cliente *cliente)
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
     deposito = float_validation("\nIngrese la cantidad que quiere depositar (0 para salir): ", "");
-    if(deposito==0){
+    if (deposito == 0)
+    {
         return 0;
     }
     historial(cliente, deposito, 3);
@@ -399,7 +398,8 @@ int transferencias(struct cliente *cliente, int n, int actual)
         aux = 0;
         printf("\nBalance actual: %.2f\n\nIngreasa la cantidad que desea transferir (0 para salir): ", cliente->balance);
         transfer = float_validation("", "");
-        if(transfer==0){
+        if (transfer == 0)
+        {
             return 0;
         }
         if (transfer > cliente->balance)
@@ -416,11 +416,12 @@ int transferencias(struct cliente *cliente, int n, int actual)
         do
         {
             printf("\nIngrese el numero de transferencia del destinatario (0 para salir): ");
-            if(transfer==0){
+            if (transfer == 0)
+            {
                 return 0;
             }
             no_trans = integer_validation("", "");
-            if(no_trans==0)
+            if (no_trans == 0)
                 return 1;
             //Usamos otro puntero para no afectar el puntero principal
             ap = cliente;
@@ -469,7 +470,8 @@ int transferencias(struct cliente *cliente, int n, int actual)
     return 1;
 }
 
-void imprimir_movimientos(struct cliente *cliente){
+void imprimir_movimientos(struct cliente *cliente)
+{
     FILE *cf;
     char archivo_linea[100];
     char archivo[100];
@@ -479,13 +481,12 @@ void imprimir_movimientos(struct cliente *cliente){
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
     printf("\nMovimientos recientes: \n\n");
-    while(fgets(archivo_linea, 100, cf)){
+    while (fgets(archivo_linea, 100, cf))
+    {
         printf("%s", archivo_linea);
     }
     wait_for_input();
 }
-
-
 
 int integer_validation(char msg[], char alt_msg[])
 {
