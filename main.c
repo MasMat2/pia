@@ -41,6 +41,7 @@ void wait_for_input(void);
 
 int main()
 {
+    struct cliente clientes[100];
     int i, n;
     int op = 5, on;
     int actual;
@@ -52,34 +53,30 @@ int main()
         printf("Error al abrir el archivo");
         exit(-1);
     }
+
+    fscanf(fp, "%d\n", &n);
+    for (i = 0; i < n; i++)
+    {
+        fscanf(fp, "%d %d %s %s %d %f %d\n", &clientes[i].no_list, &clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, &clientes[i].pswd, &clientes[i].balance, &clientes[i].no_transfer);
+    }
     //Llenado de la estructura finalizado
 
     do
     {
-        do
+        op = crear_logearse();
+        switch (op)
         {
-            rewind(fp);
-            fscanf(fp, "%d", &n);
-            struct cliente clientes[n];
-            for (i = 0; i < n; i++)
+        case 1:
+            do
             {
-                fscanf(fp, "%d %d %s %s %d %f %d\n", &clientes[i].no_list, &clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, &clientes[i].pswd, &clientes[i].balance, &clientes[i].no_transfer);
-            }
-            op = crear_logearse();
-            switch (op)
-            {
-            case 1:
-                do
-                {
-                    actual = login(clientes, n);
-                } while (actual == -1);
-                break;
-            case 2:
-                crear_cuenta(fp, clientes, n);
-                actual = n;
-                break;
-            }
-        } while (op == 2);
+                actual = login(clientes, n);
+            } while (actual == -1);
+            break;
+        case 2:
+            n = crear_cuenta(fp, clientes, n);
+            actual = n-1;
+            break;
+        }
         do
         {
             system(clear);
@@ -99,31 +96,18 @@ int main()
                 transferencias(&clientes[actual], n, actual);
                 break;
             case 5:
-                // imprimir_movimientos(&cliente[actual]);
+                imprimir_movimientos(&clientes[actual]);
                 break;
             }
         } while (op != 6);
         update(fp, clientes, n);
-        on = integer_validation("Desea apagar el cajero automatico (0-Si/1-No): ", "");
-    } while (on);
+        on = integer_validation("Desea apagar el cajero automatico (1-Si/2-No): ", "");
+    } while (on==2);
 
     return 0;
 }
 
-int crear_logearse()
-{
-    int op;
-    do
-    {
-        system(clear);
-        printf("********Cajero Automatico ACME*******\n");
-        printf("\nEliga la opcion que desee: ");
-        printf("\n1- Logearse");
-        printf("\n2- Crear cuenta");
-        op = integer_validation("Opcion: ", "");
-    } while (op > 0 && op < 3);
-    return op;
-}
+
 int login(struct cliente clientes[], int n)
 {
     system(clear);
@@ -134,7 +118,9 @@ int login(struct cliente clientes[], int n)
     //Obtener numero de cuenta y validar:
     do
     {
-        no_cuenta = integer_validation("Ingrese su numero de cuenta: ", "");
+        no_cuenta = integer_validation("\nIngrese su numero de cuenta, o 0 para salir: ", "");
+        if(no_cuenta==0)
+            return -1;
         //Verificar que pertenezca a un cliente
         index = find_acc(no_cuenta, clientes, n);
         try_acc++;
@@ -149,7 +135,7 @@ int login(struct cliente clientes[], int n)
     //Obtener contrasena y validar
     do
     {
-        pswd = integer_validation("Ingrese su contrasena: ", "");
+        pswd = integer_validation("\nIngrese su contrasena: ", "");
         try_pswd++;
         //Verificar que la contrasena indicada sea igual a la contrasena del usuario seleccionado
     } while (pswd != clientes[index].pswd && try_pswd < 3);
@@ -163,6 +149,20 @@ int login(struct cliente clientes[], int n)
     return index;
 }
 
+int crear_logearse()
+{
+    int op;
+    do
+    {
+        system(clear);
+        printf("********Cajero Automatico ACME*******\n");
+        printf("\nEliga la opcion que desee: ");
+        printf("\n1- Logearse");
+        printf("\n2- Crear cuenta");
+        op = integer_validation("\nOpcion: ", "");
+    } while (op < 0 || op > 3);
+    return op;
+}
 int crear_no_cuenta(struct cliente clientes[], int n)
 {
     int i, no_cliente;
@@ -203,33 +203,37 @@ int crear_no_transferencia(struct cliente clientes[], int n)
 }
 int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
 {
-    int i;
-    struct cliente nuevo;
+    // int i;
+    char *aux;
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
     printf("\nIngrese su nombre: ");
     fflush(stdin);
-    fgets(nuevo.nombre, 20, stdin);
-    printf("\nIngrese su apellido: ");
+    fgets(clientes[n].nombre, 20, stdin);
+    if ((aux = strchr(clientes[n].nombre, '\n')) != NULL)
+        *aux = '\0';
+    printf("Ingrese su apellido: ");
     fflush(stdin);
-    fgets(nuevo.apellido, 20, stdin);
-    nuevo.no_cliente = crear_no_cuenta(clientes, n);
-    printf("Ingrese su nueva contrasena: ");
-    nuevo.pswd = integer_validation("", "");
-    nuevo.balance = 0;
-    nuevo.no_transfer = crear_no_transferencia(clientes, n);
-    nuevo.no_list = n + 1;
-
-    //LLenar base de datos
-    // for (i = 0; i < n; i++)
-    // {
-    //     fprintf(fp, "%d %d %s %s %d %f %d\n", clientes[i].no_list, clientes[i].no_cliente, clientes[i].nombre, clientes[i].apellido, clientes[i].pswd, clientes[i].balance, clientes[i].no_transfer);
-    // }
-    fprintf(fp, "%d %d %s %s %d %f %d\n", nuevo.no_list, nuevo.no_cliente, nuevo.nombre, nuevo.apellido, nuevo.pswd, nuevo.balance, nuevo.no_transfer);
-    rewind(fp);
-    fprintf(fp, "%d\n", n + 1);
-    return n;
+    fgets(clientes[n].apellido, 20, stdin);
+    if ((aux = strchr(clientes[n].apellido, '\n')) != NULL)
+        *aux = '\0';
+    clientes[n].no_cliente = crear_no_cuenta(clientes, n);
+    printf("Ingrese su nueva contrasena (numero de 4 digitos): ");
+    clientes[n].pswd = integer_validation("", "");
+    while(clientes[n].pswd<100 ||clientes[n].pswd>9999){
+        printf("Por favor solo una contrasena de 4 digitos): ");
+        clientes[n].pswd = integer_validation("", "");
+    }
+    clientes[n].balance = 0;
+    clientes[n].no_transfer = crear_no_transferencia(clientes, n);
+    clientes[n].no_list = n + 1;
+    printf("\nSu numero de cuenta es %d es importante que lo recuerde para que pueda logearse.", clientes[n].no_cliente);
+    wait_for_input();
+    return n+1;
 }
+
+
+
 int find_acc(int no_cuenta, struct cliente clientes[], int n)
 {
     int index;
@@ -249,7 +253,8 @@ int update(FILE *fp, struct cliente clientes[], int n)
 {
     int i;
     //Regresar el apuntador al inicio del archivo
-    rewind(fp);
+    // rewind(fp);
+    fseek(fp,0,0);
     //Escribir el numero de clientes que se guardaran
     fprintf(fp, "%d\n", n);
     //Escribir cada la estuctura de cada uno de los clientes
@@ -264,8 +269,7 @@ void historial(struct cliente *cliente, float mov, int opc)
 {
     char nume[' '];
     float sum;
-    sprintf(nume, "%d", cliente->no_cliente);
-    strcat(nume, ".txt");
+    sprintf(nume, "movimientos/%d.txt", cliente->no_cliente);
     FILE *archivo = fopen(nume, "a");
     fprintf(archivo, "Balance Inicial: %f", cliente->balance);
     switch (opc)
@@ -294,6 +298,9 @@ void historial(struct cliente *cliente, float mov, int opc)
     fclose(archivo);
 }
 
+
+
+
 int menu(struct cliente *cliente)
 {
     int op;
@@ -303,13 +310,13 @@ int menu(struct cliente *cliente)
         printf("********Cajero Automatico ACME*******\n");
         printf("\nBienvenido %s %s\n", cliente->nombre, cliente->apellido);
         printf("\nEliga la opcion que desee: ");
-        printf("\n1- Obtener informacion de la cuenta");
+        printf("\n\n1- Obtener informacion de la cuenta");
         printf("\n2- Realizar un retiro");
         printf("\n3- Realizar un deposito");
         printf("\n4- Realizar una transferenecia");
         printf("\n5- Imprimir movimientos recientes");
         printf("\n6-Salir");
-        op = integer_validation("\nOpcion: ", "");
+        op = integer_validation("\n\nOpcion: ", "");
     } while (op < 1 || op > 6);
     return op;
 }
@@ -318,8 +325,8 @@ int informacion(struct cliente *cliente)
 {
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
-    printf("Informacion de la cuenta:");
-    printf("\n%-24s %s %s", "Nombre:", cliente->nombre, cliente->apellido);
+    printf("\nInformacion de la cuenta:");
+    printf("\n\n%-24s %s %s", "Nombre:", cliente->nombre, cliente->apellido);
     printf("\n%-24s %d", "Numero de cuenta:", cliente->no_cliente);
     printf("\n%-24s %d", "Numero de transferencia:", cliente->no_transfer);
     printf("\n%-24s %.2f", "Balance:", cliente->balance);
@@ -329,31 +336,30 @@ int informacion(struct cliente *cliente)
 int retiros(struct cliente *cliente)
 {
     float retiro;
-    int op, aux;
-    system(clear);
-    printf("********Cajero Automatico ACME*******\n");
+    int op, aux=0;
     do
     {
         do
         {
-            aux = 0;
-            printf("Balance actual: %.2f\n", cliente->balance);
-            retiro = float_validation("Ingreasa la cantidad que desea retirar: ", "");
+            system(clear);
+            printf("********Cajero Automatico ACME*******\n");
+            if(aux)
+                printf("\nLa cantidad a retirar es mayor a su balance, ingrese otra cantidad\n\n");
+            printf("\nBalance actual: %.2f\n", cliente->balance);
+            retiro = float_validation("\n\nIngreasa la cantidad que desea retirar: ", "");
             //Validamos que la cantidad ingresada no sea mayor a el balance del usuario
             if (retiro > cliente->balance)
-            {
-                system(clear);
-                printf("********Cajero Automatico ACME*******\n");
-                printf("La cantidad a retirar es mayor a su balance, ingrese otra cantidad:\n\n");
                 aux = 1;
-            }
-        } while (aux == 1);
-        op = integer_validation("Es correcta la cantidad?\n[1]-Si\n[2]-No\nOpcion: ", "");
-    } while (op == 2);
+            else
+                aux = 0;
+        } while (aux);
+        printf("\nEs correcta la cantidad de %.2f?\n1-Si\n2-No\nOpcion: ", retiro);
+        op = integer_validation("", "");
+    } while (op==2);
     //Actualizamos el balance del usuario actual
-    cliente->balance = cliente->balance - retiro;
-    printf("Su balance actual es %.2f", cliente->balance);
     historial(cliente, retiro, 2);
+    cliente->balance = cliente->balance - retiro;
+    printf("\nSu balance actual es %.2f", cliente->balance);
     wait_for_input();
     return 1;
 }
@@ -362,10 +368,10 @@ float depositos(struct cliente *cliente)
     float deposito;
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
-    deposito = float_validation("Ingrese la cantidad que quiere depositar: ", "");
-    cliente->balance += deposito;
-    printf("Se depositaron %.2f pesos en su cuenta\nSu balance actual es %.2f", deposito, cliente->balance);
+    deposito = float_validation("\nIngrese la cantidad que quiere depositar: ", "");
     historial(cliente, deposito, 3);
+    cliente->balance += deposito;
+    printf("Se depositaron %.2f pesos en su cuenta\n\nSu balance actual es %.2f", deposito, cliente->balance);
     wait_for_input();
     return deposito;
 }
@@ -381,7 +387,7 @@ int transferencias(struct cliente *cliente, int n, int actual)
     do
     {
         aux = 0;
-        printf("Balance actual: %.2f\n\nIngreasa la cantidad que desea transferir: ", cliente->balance);
+        printf("\nBalance actual: %.2f\n\nIngreasa la cantidad que desea transferir: ", cliente->balance);
         transfer = float_validation("", "");
         if (transfer > cliente->balance)
         {
@@ -398,6 +404,8 @@ int transferencias(struct cliente *cliente, int n, int actual)
         {
             printf("\nIngrese el numero de transferencia del destinatario: ");
             no_trans = integer_validation("", "");
+            if(no_trans==0)
+                return 1;
             //Usamos otro puntero para no afectar el puntero principal
             ap = cliente;
             //Reiniciamos el puntero
@@ -408,7 +416,7 @@ int transferencias(struct cliente *cliente, int n, int actual)
                 //Checars todos los numeros de transferencias hasta encontrar el ingresado por el usuario
                 if (no_trans == ap->no_transfer)
                 {
-                    printf("\nNumero de transferencia encontrado satisfactoriamente");
+                    printf("\nEl numero de transferencia es de %s %s", ap->nombre, ap->apellido);
                     aux = 0;
                 }
                 ap++;
@@ -418,20 +426,16 @@ int transferencias(struct cliente *cliente, int n, int actual)
                 //Avisamos al usuario que no se encontro el numero ingresado y se pide volder a ingresar un valor
                 system(clear);
                 printf("********Cajero Automatico ACME*******\n");
-                printf("Balance actual: %.2f\n\nNumero de transferencia no existe, intente nuevamente", cliente->balance);
-                wait_for_input();
+                printf("\nBalance actual: %.2f\n\nNumero de transferencia no existe, intente nuevamente presione 0 para salir\n", cliente->balance);
             }
         } while (aux == 1);
-        printf("\nEs correcto el numero de transferencia?\n[1]-Si\n[2]-No\nOpcion: ");
+        printf("\nEs correcto el numero de transferencia?\n1-Si\n2-No\nOpcion: ");
         op = integer_validation("", "");
-        if (op == 2)
-            system(clear);
-        printf("********Cajero Automatico ACME*******\n");
     } while (op == 2);
     //Restamos la cantidad transferida por el usuario de su balance
+    historial(cliente, transfer, 4);
     cliente->balance = cliente->balance - transfer;
     printf("\nSe transferieron %.2f pesos\nSu balance actual es %.2f", transfer, cliente->balance);
-    historial(cliente, transfer, 4);
     //Reiniciamos el puntero
     cliente = cliente - actual;
     for (i = 0; i < n; i++)
@@ -439,8 +443,8 @@ int transferencias(struct cliente *cliente, int n, int actual)
         //Buscamos el numero de transferencia de todos los usuarios hasta que coincida con el no. de transferencia ingresado
         if (no_trans == cliente->no_transfer)
         {
-            cliente->balance = cliente->balance + transfer;
             historial(cliente, transfer, 5);
+            cliente->balance = cliente->balance + transfer;
         }
         //Aumentamos la direccion el puntero
         cliente++;
@@ -448,6 +452,24 @@ int transferencias(struct cliente *cliente, int n, int actual)
     wait_for_input();
     return 1;
 }
+
+void imprimir_movimientos(struct cliente *cliente){
+    FILE *cf;
+    char archivo_linea[100];
+    char archivo[100];
+    sprintf(archivo, "movimientos/%d.txt", cliente->no_cliente);
+    cf = fopen(archivo, "r");
+
+    system(clear);
+    printf("********Cajero Automatico ACME*******\n");
+    printf("\nMovimientos recientes: \n\n");
+    while(fgets(archivo_linea, 100, cf)){
+        printf("%s", archivo_linea);
+    }
+    wait_for_input();
+}
+
+
 
 int integer_validation(char msg[], char alt_msg[])
 {
