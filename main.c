@@ -118,7 +118,7 @@ int login(struct cliente clientes[], int n)
     //Obtener numero de cuenta y validar:
     do
     {
-        no_cuenta = integer_validation("\nIngrese su numero de cuenta, o 0 para salir: ", "");
+        no_cuenta = integer_validation("\nIngrese su numero de cuenta, (0 para salir): ", "");
         if(no_cuenta==0)
             return -1;
         //Verificar que pertenezca a un cliente
@@ -351,7 +351,10 @@ int retiros(struct cliente *cliente)
             if(aux)
                 printf("\nLa cantidad a retirar es mayor a su balance, ingrese otra cantidad\n\n");
             printf("\nBalance actual: %.2f\n", cliente->balance);
-            retiro = float_validation("\n\nIngreasa la cantidad que desea retirar: ", "");
+            retiro = float_validation("\n\nIngreasa la cantidad que desea retirar (0 para salir): ", "");
+            if(retiro==0){
+                return 0;
+            }
             //Validamos que la cantidad ingresada no sea mayor a el balance del usuario
             if (retiro > cliente->balance)
                 aux = 1;
@@ -373,7 +376,10 @@ float depositos(struct cliente *cliente)
     float deposito;
     system(clear);
     printf("********Cajero Automatico ACME*******\n");
-    deposito = float_validation("\nIngrese la cantidad que quiere depositar: ", "");
+    deposito = float_validation("\nIngrese la cantidad que quiere depositar (0 para salir): ", "");
+    if(deposito==0){
+        return 0;
+    }
     historial(cliente, deposito, 3);
     cliente->balance += deposito;
     printf("Se depositaron %.2f pesos en su cuenta\n\nSu balance actual es %.2f", deposito, cliente->balance);
@@ -392,8 +398,11 @@ int transferencias(struct cliente *cliente, int n, int actual)
     do
     {
         aux = 0;
-        printf("\nBalance actual: %.2f\n\nIngreasa la cantidad que desea transferir: ", cliente->balance);
+        printf("\nBalance actual: %.2f\n\nIngreasa la cantidad que desea transferir (0 para salir): ", cliente->balance);
         transfer = float_validation("", "");
+        if(transfer==0){
+            return 0;
+        }
         if (transfer > cliente->balance)
         {
             system(clear);
@@ -407,7 +416,10 @@ int transferencias(struct cliente *cliente, int n, int actual)
         //Validamos que el numero de transferencia exista antes de realizar una operacion
         do
         {
-            printf("\nIngrese el numero de transferencia del destinatario: ");
+            printf("\nIngrese el numero de transferencia del destinatario (0 para salir): ");
+            if(transfer==0){
+                return 0;
+            }
             no_trans = integer_validation("", "");
             if(no_trans==0)
                 return 1;
