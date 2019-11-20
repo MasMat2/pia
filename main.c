@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-// #include <windows.h>
+#include <windows.h>
 
-#define clear "clear"
+#define clear "cls"
 
 struct cliente
 {
@@ -467,10 +467,10 @@ int historial(struct cliente *cliente, float mov, int opc)
         fprintf(archivo, "\tTransferencia: %f", mov);
         break;
     }
-    fprintf(archivo, "\tBalance actual: %f\n", sum); //c
-    // SYSTEMTIME t;
-    // GetLocalTime(&t);
-    // fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
+    fprintf(archivo, "\tBalance actual: %f\n", sum);
+    SYSTEMTIME t;
+    GetLocalTime(&t);
+    fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
     fclose(archivo);
     return 1;
 }
