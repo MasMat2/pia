@@ -27,7 +27,7 @@ int transferencias(struct cliente *cliente, int n, int actual);
 void imprimir_movimientos(struct cliente *cliente);
 
 int update(FILE *fp, struct cliente clientes[], int n);
-int historial(struct cliente *cliente, float mov, int opc);
+int historial(struct cliente *cliente, float mov, int opc, int no_transfer);
 int his_transfer(struct cliente *cliente, float mov, int opc);
 
 int crear_logearse();
@@ -235,7 +235,7 @@ int crear_cuenta(FILE *fp, struct cliente clientes[], int n)
     //Asignar el no_list para la base de datos
     clientes[n].no_list = n + 1;
     printf("\nSu numero de cuenta es %d es importante que lo recuerde para que pueda logearse.", clientes[n].no_cliente);
-    historial(&clientes[n], 0, 0);
+    historial(&clientes[n], 0, 0, 0);
     wait_for_input();
     return n + 1;
 }
@@ -307,7 +307,7 @@ int retiros(struct cliente *cliente)
         op = integer_validation("", "");
     } while (op == 2);
     //Actualizamos el balance del usuario actual
-    historial(cliente, retiro, 2);
+    historial(cliente, retiro, 2, 0);
     cliente->balance = cliente->balance - retiro;
     printf("\nSu balance actual es %.2f", cliente->balance);
     wait_for_input();
@@ -325,7 +325,7 @@ float depositos(struct cliente *cliente)
     {
         return 0;
     }
-    historial(cliente, deposito, 3);
+    historial(cliente, deposito, 3, 0);
     cliente->balance += deposito;
     printf("Se depositaron %.2f pesos en su cuenta\n\nSu balance actual es %.2f", deposito, cliente->balance);
     wait_for_input();
@@ -391,13 +391,13 @@ int transferencias(struct cliente *cliente, int n, int actual)
     } while (op == 2);
     //Restamos la cantidad transferida por el usuario de su balance
     no_transfer = his_transfer(cliente, transfer, 1);
-    historial(cliente, transfer, 4);
+    historial(cliente, transfer, 4, no_transfer);
     cliente->balance = cliente->balance - transfer;
     printf("\nSu numero de transferencia es %d", no_transfer);
     printf("\nSe transferieron %.2f pesos a %s %s\nSu balance actual es %.2f", transfer, ap->nombre, ap->apellido, cliente->balance);
     //Reiniciamos el puntero
     his_transfer(ap, transfer, 2);
-    historial(ap, transfer, 5);
+    historial(ap, transfer, 5, no_transfer);
     ap->balance = ap->balance + transfer;
     wait_for_input();
     return 1;
@@ -437,7 +437,7 @@ int update(FILE *fp, struct cliente clientes[], int n)
     return 0;
 }
 
-int historial(struct cliente *cliente, float mov, int opc)
+int historial(struct cliente *cliente, float mov, int opc, int no_transfer)
 {
     char nume[' '];
     float sum;
@@ -460,14 +460,14 @@ int historial(struct cliente *cliente, float mov, int opc)
         break;
     case 4:
         sum = cliente->balance - mov;
-        fprintf(archivo, "\tTransferencia: %f", mov);
+        fprintf(archivo, "\tNo transferencia: %d\tTransferencia: %f", no_transfer, mov);
         break;
     case 5:
         sum = cliente->balance + mov;
-        fprintf(archivo, "\tTransferencia: %f", mov);
+        fprintf(archivo, "\tNo transferencia: %d\tTransferencia: %f", no_transfer, mov);
         break;
     }
-    fprintf(archivo, "\tBalance actual: %f\n", sum);
+    fprintf(archivo, "\tBalance actual: %f", sum);
     SYSTEMTIME t;
     GetLocalTime(&t);
     fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
@@ -493,10 +493,10 @@ int his_transfer(struct cliente *cliente, float mov, int opc)
         break;
     case 2:
         fprintf(archivo, "Cliente Destino: %d\t", cliente->no_cliente);
-        fprintf(archivo, "Cantidad transferida: %.2f\n", mov);
-        // SYSTEMTIME t;
-        // GetLocalTime(&t);
-        // fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
+        fprintf(archivo, "Cantidad transferida: %.2f", mov);
+        SYSTEMTIME t;
+        GetLocalTime(&t);
+        fprintf(archivo, "\tFecha: %d/%d/%d a las %d:%d\n", t.wDay, t.wMonth, t.wYear, t.wHour, t.wMinute);
         break;
     }
 
